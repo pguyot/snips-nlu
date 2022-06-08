@@ -1,28 +1,59 @@
-name: Continuous integration of wheels on armv6l
+name: Continuous integration of wheels on armv6l/aarch64
 on:
   push:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [zero_raspbian, zero_raspios, zero2_64_raspios]
+        include:
+        - target: zero_raspbian
+          cpu: arm1176
+          cpu_info: cpuinfo/raspberrypi_zero_w
+          base_image: raspbian_lite:latest
+          python_suffix: cp37-cp37m-linux_armv6l
+        - target: zero_raspios
+          cpu: arm1176
+          cpu_info: cpuinfo/raspberrypi_zero_w
+          base_image: raspios_lite:latest
+          python_suffix: cp39-cp39-linux_armv6l
+        - target: zero2_64_raspios
+          cpu: cortex-a53
+          cpu_info: cpuinfo/raspberrypi_zero2_w_arm64
+          base_image: raspios_lite_arm64:latest
+          python_suffix: cp39-cp39-linux_aarch64
     steps:
     - uses: actions/checkout@v2
     - name: Setup dist
       run: |
         mkdir -p dist
       shell: bash
-    - uses: pguyot/arm-runner-action@v1
+    - uses: pguyot/arm-runner-action@v2
       with:
+        base_image: ${{ matrix.base_image }}
+        cpu: ${{ matrix.cpu }}
+        cpu_info: ${{ matrix.cpu_info }}
         image_additional_mb: 1024
         commands: |
-            apt-get update -y
-            apt-get install --no-install-recommends -y python3 python3-pip python3-dev python3-venv python3-setuptools
+            apt-get update -y --allow-releaseinfo-change
+            apt-get install --no-install-recommends -y python3 python3-pip python3-dev python3-venv python3-setuptools libatlas-base-dev
             python3 -m venv venv
             venv/bin/pip install --upgrade pip
             venv/bin/pip install wheel
-            venv/bin/pip install https://github.com/pguyot/snips-nlu-utils/releases/download/v0.9.1/snips_nlu_utils-0.9.1-cp37-cp37m-linux_armv6l.whl
-            venv/bin/pip install https://github.com/pguyot/snips-nlu-parsers/releases/download/v0.4.3/snips_nlu_parsers-0.4.3-cp37-cp37m-linux_armv6l.whl
-            venv/bin/pip install numpy==1.20.2 scikit-learn==0.22.2.post1 scipy==1.6.2
+            venv/bin/pip install https://github.com/pguyot/snips-nlu-utils/releases/download/v0.9.1/snips_nlu_utils-0.9.1-${{ matrix.python_suffix }}.whl
+            venv/bin/pip install https://github.com/pguyot/snips-nlu-parsers/releases/download/v0.4.3/snips_nlu_parsers-0.4.3-${{ matrix.python_suffix }}.whl
+            venv/bin/pip install numpy==1.21.4 scikit-learn==0.24.2 scipy==1.6.2
             venv/bin/python setup.py bdist_wheel
+            venv/bin/pip install dist/*.whl
+            venv/bin/pip install "mock>=2.0,<3.0" "snips-nlu-metrics>=0.14.1,<0.15" "pylint<2" "coverage>=4.4.2,<5.0" "checksumdir~=1.1.6"
+            venv/bin/python -m snips_nlu download en
+            venv/bin/python -m snips_nlu download de
+            venv/bin/python -m snips_nlu download fr
+            venv/bin/python -m snips_nlu download-entity snips/musicTrack fr
+            venv/bin/python -m snips_nlu download-entity snips/musicArtist fr
+            venv/bin/python setup.py test
         copy_artifact_path:
             dist/*.whl
         copy_artifact_dest:
