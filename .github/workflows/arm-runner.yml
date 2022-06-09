@@ -51,6 +51,7 @@ jobs:
             venv/bin/python -m snips_nlu download en
             venv/bin/python -m snips_nlu download de
             venv/bin/python -m snips_nlu download fr
+            venv/bin/python -m snips_nlu download es
             venv/bin/python -m snips_nlu download-entity snips/musicTrack fr
             venv/bin/python -m snips_nlu download-entity snips/musicArtist fr
             venv/bin/python setup.py test
