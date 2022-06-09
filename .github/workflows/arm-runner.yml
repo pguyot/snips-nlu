@@ -44,10 +44,10 @@ jobs:
             venv/bin/pip install wheel
             venv/bin/pip install https://github.com/pguyot/snips-nlu-utils/releases/download/v0.9.1/snips_nlu_utils-0.9.1-${{ matrix.python_suffix }}.whl
             venv/bin/pip install https://github.com/pguyot/snips-nlu-parsers/releases/download/v0.4.3/snips_nlu_parsers-0.4.3-${{ matrix.python_suffix }}.whl
-            venv/bin/pip install numpy==1.21.4 scikit-learn==0.24.2 scipy==1.6.2
+            venv/bin/pip install numpy==1.21.4 scikit-learn==0.24.2 scipy==1.6.2 python-crfsuite==0.9.7
             venv/bin/python setup.py bdist_wheel
             venv/bin/pip install dist/*.whl
-            venv/bin/pip install "mock>=2.0,<3.0" "snips-nlu-metrics>=0.14.1,<0.15" "pylint<2" "coverage>=4.4.2,<5.0" "checksumdir~=1.1.6"
+            venv/bin/pip install --no-deps "mock>=2.0,<3.0" "snips-nlu-metrics>=0.14.1,<0.15" "pylint<2" "coverage>=4.4.2,<5.0" "checksumdir~=1.1.6"
             venv/bin/python -m snips_nlu download en
             venv/bin/python -m snips_nlu download de
             venv/bin/python -m snips_nlu download fr
